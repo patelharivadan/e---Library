@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Library Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <section id="loginView" class="login-wrapper">
+    <div class="login-card">
+      <h1>E-Library Login</h1>
+      <p class="login-subtitle">Sign in as Admin or Student to continue</p>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter password" required>
+        </div>
+        <p id="loginError" class="error-msg hidden"></p>
+        <button type="submit" class="btn btn-primary full-width">Sign In</button>
+      </form>
+
+      <div class="demo-credentials">
+        <p><strong>Demo Accounts:</strong></p>
+        <p>Admin: <code>admin</code> / <code>admin123</code></p>
+        <p>Student: <code>student</code> / <code>student123</code></p>
+      </div>
+    </div>
+  </section>
+
+  <div id="appView" class="hidden">
+    <header>
+      <div class="container header-bar">
+        <div>
+          <h1>E-Library Management System</h1>
+          <p>Manage, search, borrow, track due dates &amp; fines, and read e-books</p>
+        </div>
+        <div class="user-controls">
+          <span id="userBadge" class="user-badge"></span>
+          <button id="logoutBtn" class="btn btn-logout">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Books</span>
+          <span class="stat-value" id="totalBooks">0</span>
+        </div>
+        <div class="stat-card available">
+          <span class="stat-label">Available</span>
+          <span class="stat-value" id="availableBooks">0</span>
+        </div>
+        <div class="stat-card borrowed">
+          <span class="stat-label">Borrowed</span>
+          <span class="stat-value" id="borrowedBooks">0</span>
+        </div>
+        <div class="stat-card overdue">
+          <span class="stat-label">Overdue</span>
+          <span class="stat-value" id="overdueBooks">0</span>
+        </div>
+        <div class="stat-card fines">
+          <span class="stat-label">Pending Fines</span>
+          <span class="stat-value" id="totalFines">₹0</span>
+        </div>
+      </section>
+
+      <section id="overdueBanner" class="overdue-banner hidden">
+        <div class="overdue-banner-content">
+          <strong>Overdue Alert:</strong>
+          <span id="overdueBannerText"></span>
+        </div>
+        <button id="viewOverdueBtn" class="btn btn-delete btn-sm">View Overdue</button>
+      </section>
+
+      <section id="adminSection" class="card hidden">
+        <div class="admin-header">
+          <h2>Add New Book &amp; Attach E-Book PDF</h2>
+          <div class="admin-tools">
+            <div class="fine-setting">
+              <label for="fineRateInput">Fine/Day (₹):</label>
+              <input type="number" id="fineRateInput" min="0" step="1" value="10">
+            </div>
+            <button type="button" id="exportCsvBtn" class="btn btn-export btn-sm">
+              Export Books CSV
+            </button>
+          </div>
+        </div>
+
+        <form id="bookForm" class="book-form">
+          <input type="text" id="title" placeholder="Book Title" required>
+          <input type="text" id="author" placeholder="Author Name" required>
+          <select id="category" required>
+            <option value="" disabled selected>Select Category</option>
+            <option value="Programming">Programming</option>
+            <option value="Science">Science</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Fiction">Fiction</option>
+            <option value="History">History</option>
+          </select>
+          <input type="text" id="isbn" placeholder="ISBN (e.g., 978-0132350884)" required>
+          <input type="url" id="pdfUrl" placeholder="PDF URL (optional, https://...)">
+          <div class="file-input-wrap">
+            <label for="pdfFile" class="file-label">Or upload PDF file:</label>
+            <input type="file" id="pdfFile" accept="application/pdf">
+          </div>
+          <button type="submit" class="btn btn-primary">Add Book</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="controls">
+          <input type="text" id="searchInput" placeholder="Search by title, author, or ISBN...">
+          <select id="filterCategory">
+            <option value="All">All Categories</option>
+            <option value="Programming">Programming</option>
+            <option value="Science">Science</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Fiction">Fiction</option>
+            <option value="History">History</option>
+          </select>
+          <select id="filterStatus">
+            <option value="All">All Statuses</option>
+            <option value="Available">Available</option>
+            <option value="Borrowed">Borrowed</option>
+            <option value="Overdue">Overdue</option>
+          </select>
+        </div>
+
+        <div id="bookList" class="book-grid"></div>
+      </section>
+
+      <section id="historySection" class="card hidden">
+        <div class="admin-header">
+          <div>
+            <h2>Borrow &amp; Return History Log</h2>
+            <p class="history-summary">
+              Total Transactions: <strong id="historyCount">0</strong> &nbsp;|&nbsp;
+              Total Fines Collected: <strong id="collectedFinesTotal" class="collected-fine-text">₹0</strong>
+            </p>
+          </div>
+          <div class="admin-tools">
+            <button type="button" id="exportHistoryCsvBtn" class="btn btn-export btn-sm">
+              Export History CSV
+            </button>
+            <button type="button" id="clearHistoryBtn" class="btn btn-delete btn-sm">
+              Clear Log
+            </button>
+          </div>
+        </div>
+
+        <div class="history-controls">
+          <input type="text" id="historySearch" placeholder="Search history by book, ISBN, or borrower...">
+          <select id="historyFilterAction">
+            <option value="All">All Actions</option>
+            <option value="Borrowed">Borrowed</option>
+            <option value="Returned">Returned</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date &amp; Time</th>
+                <th>Action</th>
+                <th>Book Title</th>
+                <th>ISBN</th>
+                <th>Borrower</th>
+                <th>Due Date</th>
+                <th>Fine Collected</th>
+                <th>Processed By</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="borrowModal" class="modal hidden">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Borrow Book</h3>
+        <button id="closeBorrowModal" class="btn btn-delete btn-sm">Close</button>
+      </div>
+      <form id="borrowForm" class="modal-form">
+        <p class="borrow-book-name">Book: <strong id="borrowModalTitle"></strong></p>
+        <input type="hidden" id="borrowBookId">
+        <div class="form-group">
+          <label for="borrowerName">Borrower Name</label>
+          <input type="text" id="borrowerName" placeholder="Enter borrower's name" required>
+        </div>
+        <div class="form-group">
+          <label for="borrowDueDate">Due Date</label>
+          <input type="date" id="borrowDueDate" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="cancelBorrowBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-borrow">Confirm Borrow</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="pdfModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="pdfModalTitle">Reading E-Book</h3>
+        <div class="modal-actions">
+          <a id="pdfOpenNewTab" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+            Open in New Tab
+          </a>
+          <button id="closePdfModal" class="btn btn-delete btn-sm">Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <iframe id="pdfFrame" title="PDF E-Book Viewer"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
